@@ -47,10 +47,6 @@ jobs:
           script: |
             cd /home/ec2-user/app
 
-            echo "Stopping old app if running..."
-            pkill -f todo-app.jar || true
-            sleep 50
-
             echo "Replacing JAR..."
             mv target/*.jar todo-app.jar
 
