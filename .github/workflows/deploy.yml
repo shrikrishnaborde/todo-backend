@@ -1,0 +1,58 @@
+name: Build & Deploy Spring Boot (Java 25)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Java 25 (Amazon Corretto)
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '25'
+          cache: maven
+
+      # 3️⃣ Build project with Maven
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      # 4️⃣ Copy JAR file to EC2
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "target/*.jar"
+          target: "/home/ec2-user/app"
+
+      # 5️⃣ Restart Spring Boot application on EC2
+      - name: Restart Application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ec2-user/app
+
+            # Move uploaded JAR
+            mv target/*.jar todo-app.jar
+
+            # Stop existing app (if running)
+            pkill -f todo-app.jar || true
+
+            # Start app with production profile
+            nohup java -jar todo-app.jar \
+              --spring.profiles.active=prod \
+              > app.log 2>&1 &
