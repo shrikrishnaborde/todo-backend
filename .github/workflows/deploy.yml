@@ -53,7 +53,7 @@ jobs:
             export DB_URL='${{ secrets.DB_URL }}'
             export DB_USER='${{ secrets.DB_USER }}'
             export DB_PASS='${{ secrets.DB_PASS }}'
-            export EC2_HOST='${{ secrets.EC2_HOST }}'
+            export EC2_HOST='TEST'
 
             nohup java -jar todo-app.jar \
             --spring.profiles.active=prod \
