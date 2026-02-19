@@ -49,7 +49,7 @@ jobs:
 
             echo "Stopping old app if running..."
             pkill -f todo-app.jar || true
-            sleep 5
+            sleep 50
 
             echo "Replacing JAR..."
             mv target/*.jar todo-app.jar
