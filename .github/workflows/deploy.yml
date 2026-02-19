@@ -47,14 +47,20 @@ jobs:
           script: |
             cd /home/ec2-user/app
 
-            mv target/*.jar todo-app.jar
+            echo "Stopping old app if running..."
             pkill -f todo-app.jar || true
+            sleep 5
 
-            export DB_URL='${{ secrets.DB_URL }}'
-            export DB_USER='${{ secrets.DB_USER }}'
-            export DB_PASS='${{ secrets.DB_PASS }}'
-            export EC2_HOST='TEST'
+            echo "Replacing JAR..."
+            mv target/*.jar todo-app.jar
 
-            nohup java -jar todo-app.jar \
-            --spring.profiles.active=prod \
-            > app.log 2>&1 &
+            echo "Starting application..."
+            nohup java -Xms256m -Xmx512m -jar todo-app.jar \
+              --spring.profiles.active=prod \
+              --spring.datasource.url='${{ secrets.DB_URL }}' \
+              --spring.datasource.username='${{ secrets.DB_USER }}' \
+              --spring.datasource.password='${{ secrets.DB_PASS }}' \
+              > app.log 2>&1 &
+      
+            echo "Deployment finished."
+
